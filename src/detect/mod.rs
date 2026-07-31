@@ -65,6 +65,7 @@ pub enum Agent {
     Letta,
     Maki,
     Muse,
+    Jcode,
 }
 
 impl Agent {
@@ -93,6 +94,7 @@ impl Agent {
         Self::Letta,
         Self::Maki,
         Self::Muse,
+        Self::Jcode,
     ];
 
     pub const SCREEN_MANIFEST_AGENTS: [Self; 22] = [
@@ -118,6 +120,7 @@ impl Agent {
         Self::Letta,
         Self::Maki,
         Self::Muse,
+        Self::Jcode,
     ];
 }
 
@@ -147,6 +150,7 @@ pub fn agent_label(agent: Agent) -> &'static str {
         Agent::Letta => "letta",
         Agent::Maki => "maki",
         Agent::Muse => "muse",
+        Agent::Jcode => "jcode",
     }
 }
 
@@ -182,6 +186,7 @@ pub fn interactive_agent_executable(agent: Agent) -> &'static str {
         Agent::Letta => "letta",
         Agent::Maki => "maki",
         Agent::Muse => "muse",
+        Agent::Jcode => "jcode",
     }
 }
 
@@ -223,6 +228,7 @@ fn lookup_agent(name: &str) -> Option<Agent> {
         "maki" => Some(Agent::Maki),
         "muse" | "muse-code" | "muse-cli" => Some(Agent::Muse),
         _ if is_muse_versioned_binary(name) => Some(Agent::Muse),
+        "jcode" => Some(Agent::Jcode),
         _ => None,
     }
 }
@@ -1019,6 +1025,7 @@ mod tests {
             (Agent::Letta, "letta"),
             (Agent::Maki, "maki"),
             (Agent::Muse, "muse"),
+            (Agent::Jcode, "jcode"),
         ];
         assert_eq!(expected.len(), Agent::ALL.len());
         for (agent, executable) in expected {
