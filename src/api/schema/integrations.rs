@@ -47,6 +47,7 @@ pub enum IntegrationTarget {
     Mastracode,
     AntigravityCli,
     Grok,
+    Jcode,
 }
 
 impl IntegrationTarget {
@@ -68,6 +69,7 @@ impl IntegrationTarget {
         Self::Mastracode,
         Self::AntigravityCli,
         Self::Grok,
+        Self::Jcode,
     ];
 }
 

@@ -222,7 +222,7 @@ fn lookup_agent(name: &str) -> Option<Agent> {
         "maki" => Some(Agent::Maki),
         "muse" | "muse-code" | "muse-cli" => Some(Agent::Muse),
         _ if is_muse_versioned_binary(name) => Some(Agent::Muse),
-        "jcode" => Some(Agent::Jcode),
+        "jcode" | "j-code" => Some(Agent::Jcode),
         _ => None,
     }
 }
@@ -334,7 +334,10 @@ pub(crate) fn full_lifecycle_hook_authority(source: &str, agent_label: &str) -> 
 pub(crate) fn session_identity_only_integration(source: &str, agent_label: &str) -> bool {
     matches!(
         (source, agent_label),
-        ("herdr:hermes", "hermes") | ("herdr:qwen", "qwen") | ("herdr:antigravity_cli", "agy")
+        ("herdr:hermes", "hermes")
+            | ("herdr:qwen", "qwen")
+            | ("herdr:antigravity_cli", "agy")
+            | ("herdr:jcode", "jcode")
     )
 }
 
@@ -821,6 +824,7 @@ mod tests {
             identify_agent(r"C:\Users\user\muse-bin-0.2.1-R1215.1.exe"),
             Some(Agent::Muse)
         );
+        assert_eq!(identify_agent("jcode"), Some(Agent::Jcode));
     }
 
     #[test]
@@ -848,6 +852,7 @@ mod tests {
         assert_eq!(parse_agent_label("qwen-code"), Some(Agent::Qwen));
         assert_eq!(parse_agent_label("maki"), Some(Agent::Maki));
         assert_eq!(parse_agent_label("kilo-code"), Some(Agent::Kilo));
+        assert_eq!(parse_agent_label("j-code"), Some(Agent::Jcode));
     }
 
     #[test]
@@ -923,10 +928,30 @@ mod tests {
             ("herdr:hermes", "hermes", Agent::Hermes),
             ("herdr:qwen", "qwen", Agent::Qwen),
             ("herdr:antigravity_cli", "agy", Agent::Antigravity),
+            ("herdr:jcode", "jcode", Agent::Jcode),
         ] {
             assert!(!full_lifecycle_hook_authority(source, label));
             assert!(session_identity_only_integration(source, label));
             assert!(Agent::SCREEN_MANIFEST_AGENTS.contains(&agent));
+        }
+    }
+
+    #[test]
+    fn jcode_manifest_uses_composer_and_processing_status_evidence() {
+        for screen in [
+            "transcript\n2…",
+            "transcript\n⠼ waiting for response… 1s\nmultiline composer",
+            "transcript\n··● bash ●·· · run tests · 23s\nmultiline composer",
+        ] {
+            let detection = detect_agent(Some(Agent::Jcode), screen);
+            assert_eq!(detection.state, AgentState::Working, "screen: {screen}");
+            assert!(detection.visible_working);
+        }
+
+        for screen in ["1>", "6$", "6»"] {
+            let detection = detect_agent(Some(Agent::Jcode), screen);
+            assert_eq!(detection.state, AgentState::Idle, "screen: {screen}");
+            assert!(detection.visible_idle);
         }
     }
 
